@@ -21,6 +21,30 @@ class MultiAgentSearchAgent(ABC):
 class MinimaxAgent(MultiAgentSearchAgent):
     """Agente Minimax para el defensor MAX frente al intruso MIN."""
 
+    def minimax(self, state: GameState, agent_index: int, depth_left: int) -> float:
+      self.nodes_evaluated += 1
+
+      if state.is_win() or state.is_lose():
+        return evaluation_function(state)
+
+      if depth_left == 0:
+        return evaluation_function(state)
+      
+      acciones = state.get_legal_actions(agent_index)
+      agente_calculado = (agent_index + 1) % state.get_num_agents()
+
+      valores = []
+
+      for accion in acciones:
+        value = self.minimax(state.generate_successor(agent_index, accion), agente_calculado, depth_left - 1)
+        valores.append(value)
+
+      if agent_index == 0:  
+        return max(valores)
+      else:  
+        return min(valores)
+      
+
     def get_action(self, state: GameState) -> str | None:
         """
         Retorna la acción del defensor con mayor valor Minimax.
@@ -41,8 +65,20 @@ class MinimaxAgent(MultiAgentSearchAgent):
           la raíz. Retorne la acción de MAX y conserve la primera en los empates.
         """
         # TODO: Add your code here
-        raise NotImplementedError("Punto 4: implemente MinimaxAgent.get_action")
+        self.nodes_evaluated = 0
+        self.nodes_evaluated += 1
 
+        acciones = state.get_legal_actions(0)
+        best_action = None
+        best_value = float("-inf")
+
+        for action in acciones:
+            value = self.minimax(state.generate_successor(0, action), 1, self.depth - 1)
+            if value > best_value:
+                best_value = value
+                best_action = action
+
+        return best_action
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """Agente Minimax que evita explorar ramas mediante poda alfa-beta."""
