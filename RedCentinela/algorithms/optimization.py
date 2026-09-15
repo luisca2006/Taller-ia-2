@@ -90,26 +90,21 @@ def simulated_annealing(
             iteration
         )
 
-        # Elegir un solo candidato
         candidato = rng.choice(problem.neighbors(actual))
 
         candidate_score = configuration_score(problem, candidato)
 
-        # Para maximización
         delta = candidate_score - current_score
 
-        # Aceptar siempre las mejoras
         if delta > 0:
             actual = candidato
             current_score = candidate_score
 
-        # Aceptar algunas soluciones peores
         else:
             if rng.random() < math.exp(delta / temperature):
                 actual = candidato
                 current_score = candidate_score
 
-        # Actualizar el mejor estado encontrado
         if current_score > best_score:
             best = actual
             best_score = current_score
