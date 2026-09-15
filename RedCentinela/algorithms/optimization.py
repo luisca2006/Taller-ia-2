@@ -49,7 +49,10 @@ def cooling_schedule(initial_temperature: float, cooling_rate: float, iteration:
     Esta función se invoca desde simulated_annealing en cada iteración.
     """
     # TODO: Add your code here
-    raise NotImplementedError("Punto 2: implemente cooling_schedule")
+    temperture = initial_temperature * (cooling_rate ** iteration)
+    return temperture
+    
+    
 
 
 def simulated_annealing(
@@ -66,21 +69,58 @@ def simulated_annealing(
     Debe proponer un vecino aleatorio por iteración, aceptar siempre las
     mejoras y aplicar exp(delta / temperature) en los demás casos. El estado
     actual y el mejor estado encontrado deben conservarse por separado.
-
-    Tips:
-    - Seleccione el candidato con rng.choice(problem.neighbors(current)) y use
-      exclusivamente rng para conservar la reproducibilidad.
-    - Obtenga la temperatura con cooling_schedule(...) y calcule la aceptación
-      con delta = puntaje_candidato - puntaje_actual y math.exp(...).
-    - Mantenga separados el estado actual y el mejor encontrado; registre el
-      estado actual después de cada intento, incluso si se rechaza.
-    - Detenga la ejecución cuando la temperatura alcance minimum_temperature.
     """
     rng = rng or random.Random()
     minimum_temperature = 1e-9
 
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 2: implemente simulated_annealing")
+    temperature = initial_temperature
+    iteration = 0
+
+    actual = initial_configuration
+    best = initial_configuration
+
+    current_score = configuration_score(problem, actual)
+    best_score = current_score
+
+    while temperature > minimum_temperature and iteration < max_iterations:
+
+        temperature = cooling_schedule(
+            initial_temperature,
+            cooling_rate,
+            iteration
+        )
+
+        # Elegir un solo candidato
+        candidato = rng.choice(problem.neighbors(actual))
+
+        candidate_score = configuration_score(problem, candidato)
+
+        # Para maximización
+        delta = candidate_score - current_score
+
+        # Aceptar siempre las mejoras
+        if delta > 0:
+            actual = candidato
+            current_score = candidate_score
+
+        # Aceptar algunas soluciones peores
+        else:
+            if rng.random() < math.exp(delta / temperature):
+                actual = candidato
+                current_score = candidate_score
+
+        # Actualizar el mejor estado encontrado
+        if current_score > best_score:
+            best = actual
+            best_score = current_score
+
+        iteration += 1
+
+    return OptimizationResult(
+        best_configuration=best,
+        best_score=best_score,
+    )
+
 
 
 def one_point_crossover(
