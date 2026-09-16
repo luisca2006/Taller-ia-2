@@ -109,6 +109,7 @@ def simulated_annealing(
 
     current_score = configuration_score(problem, actual)
     best_score = current_score
+    evaluations = 1
 
     while temperature > minimum_temperature and iteration < max_iterations:
 
@@ -121,6 +122,7 @@ def simulated_annealing(
         candidato = rng.choice(problem.neighbors(actual))
 
         candidate_score = configuration_score(problem, candidato)
+        evaluations += 1
 
         delta = candidate_score - current_score
 
@@ -142,6 +144,8 @@ def simulated_annealing(
     return OptimizationResult(
         best_configuration=best,
         best_score=best_score,
+        evaluations=evaluations,
+        iterations=iteration,
     )
 
 
