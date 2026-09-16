@@ -110,6 +110,8 @@ def simulated_annealing(
     current_score = configuration_score(problem, actual)
     best_score = current_score
     evaluations = 1
+    history: list[Configuration] = [actual]
+    score_history: list[float] = [current_score]
 
     while temperature > minimum_temperature and iteration < max_iterations:
 
@@ -139,6 +141,8 @@ def simulated_annealing(
             best = actual
             best_score = current_score
 
+        history.append(actual)
+        score_history.append(current_score)
         iteration += 1
 
     return OptimizationResult(
@@ -146,6 +150,8 @@ def simulated_annealing(
         best_score=best_score,
         evaluations=evaluations,
         iterations=iteration,
+        history=history,
+        score_history=score_history,
     )
 
 
