@@ -131,13 +131,11 @@ def one_point_crossover(
     - Cada descendiente combina el prefijo de un padre con el sufijo del otro.
     - Retorne tuplas y no repare aquí los descendientes.
     """
-    if len(parent1) != len(parent2):
-        raise ValueError("Los padres deben tener la misma longitud")
-    if len(parent1) < 2:
-        return parent1, parent2
-
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 3: implemente one_point_crossover")
+    
+    cut = rng.randint(1, len(parent1) - 1)
+    child1 = parent1[:cut] + parent2[cut:]
+    child2 = parent2[:cut] + parent1[cut:]
+    return tuple(child1), tuple(child2)
 
 
 def swap_mutation(
@@ -156,8 +154,26 @@ def swap_mutation(
     - Si alguno de los dos grupos está vacío, no hay un intercambio posible.
     - Retorne una tupla nueva; no modifique el individuo recibido.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 3: implemente swap_mutation")
+    active = []
+    inactive = []
+    i = 0
+    if rng.random() < mutation_probability:
+        for i in range(len(individual)):
+            if individual[i] == 1:
+                active.append(i)
+            elif individual[i] == 0:
+                inactive.append(i)
+        if not active or not inactive:
+            return individual
+        
+        i1 = rng.choice(active)
+        i0 = rng.choice(inactive)
+        mutated = list(individual)
+        mutated[i1] = 0
+        mutated[i0] = 1
+        return tuple(mutated)
+        
+        
 
 
 def genetic_algorithm(
