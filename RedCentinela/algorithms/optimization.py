@@ -77,8 +77,8 @@ def cooling_schedule(initial_temperature: float, cooling_rate: float, iteration:
     Esta función se invoca desde simulated_annealing en cada iteración.
     """
     # TODO: Add your code here
-    temperture = initial_temperature * (cooling_rate ** iteration)
-    return temperture
+    temperature = initial_temperature * (cooling_rate ** iteration)
+    return temperature
     
     
 
@@ -114,13 +114,7 @@ def simulated_annealing(
     score_history: list[float] = [current_score]
 
     while temperature > minimum_temperature and iteration < max_iterations:
-
-        temperature = cooling_schedule(
-            initial_temperature,
-            cooling_rate,
-            iteration
-        )
-
+        temperature = cooling_schedule(initial_temperature, cooling_rate, iteration)
         candidato = rng.choice(problem.neighbors(actual))
 
         candidate_score = configuration_score(problem, candidato)
