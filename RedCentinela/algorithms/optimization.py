@@ -15,10 +15,9 @@ def configuration_score(
     - Use problem.score_components(configuration); ya retorna cobertura,
       redundancia y exposición en ese orden.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 1: implemente configuration_score")
-
-
+    coverage, redundancy, exposure = problem.score_components(configuration)
+    return coverage - redundancy - exposure
+    
 def hill_climbing(
     problem: SmartGridOptimizationProblem,
     initial_configuration: Configuration,
@@ -38,9 +37,38 @@ def hill_climbing(
     - Inicialice los historiales con la configuración inicial y agregue solo las
       mejoras aceptadas antes de retornar el OptimizationResult.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 1: implemente hill_climbing")
+    actual = initial_configuration
+    evals = 0
 
+    score_actual = configuration_score(problem, actual)
+    evals += 1
+
+    historia: list[Configuration] = [actual]
+    score_historia: list[float] = [score_actual]
+
+    iteraciones = 0
+    while iteraciones < max_iterations:
+        m_vecino = None
+        m_score = score_actual
+
+        for vecino in problem.neighbors(actual):
+            score_vecino = configuration_score(problem, vecino)
+            evals += 1
+
+            if score_vecino > m_score:
+                m_score = score_vecino
+                m_vecino = vecino  
+
+        iteraciones += 1
+
+        if m_vecino is None:
+            break
+        actual = m_vecino
+        score_actual = m_score
+        historia.append(actual)
+        score_historia.append(score_actual)
+
+    return OptimizationResult(best_configuration=actual, best_score=score_actual, evaluations=evals, iterations=iteraciones, history=historia, score_history=score_historia)
 
 def cooling_schedule(initial_temperature: float, cooling_rate: float, iteration: int) -> float:
     """
@@ -49,8 +77,8 @@ def cooling_schedule(initial_temperature: float, cooling_rate: float, iteration:
     Esta función se invoca desde simulated_annealing en cada iteración.
     """
     # TODO: Add your code here
-    temperture = initial_temperature * (cooling_rate ** iteration)
-    return temperture
+    temperature = initial_temperature * (cooling_rate ** iteration)
+    return temperature
     
     
 
@@ -81,18 +109,16 @@ def simulated_annealing(
 
     current_score = configuration_score(problem, actual)
     best_score = current_score
+    evaluations = 1
+    history: list[Configuration] = [actual]
+    score_history: list[float] = [current_score]
 
     while temperature > minimum_temperature and iteration < max_iterations:
-
-        temperature = cooling_schedule(
-            initial_temperature,
-            cooling_rate,
-            iteration
-        )
-
+        temperature = cooling_schedule(initial_temperature, cooling_rate, iteration)
         candidato = rng.choice(problem.neighbors(actual))
 
         candidate_score = configuration_score(problem, candidato)
+        evaluations += 1
 
         delta = candidate_score - current_score
 
@@ -109,11 +135,17 @@ def simulated_annealing(
             best = actual
             best_score = current_score
 
+        history.append(actual)
+        score_history.append(current_score)
         iteration += 1
 
     return OptimizationResult(
         best_configuration=best,
         best_score=best_score,
+        evaluations=evaluations,
+        iterations=iteration,
+        history=history,
+        score_history=score_history,
     )
 
 
@@ -131,13 +163,11 @@ def one_point_crossover(
     - Cada descendiente combina el prefijo de un padre con el sufijo del otro.
     - Retorne tuplas y no repare aquí los descendientes.
     """
-    if len(parent1) != len(parent2):
-        raise ValueError("Los padres deben tener la misma longitud")
-    if len(parent1) < 2:
-        return parent1, parent2
-
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 3: implemente one_point_crossover")
+    
+    cut = rng.randint(1, len(parent1) - 1)
+    child1 = parent1[:cut] + parent2[cut:]
+    child2 = parent2[:cut] + parent1[cut:]
+    return tuple(child1), tuple(child2)
 
 
 def swap_mutation(
@@ -156,8 +186,26 @@ def swap_mutation(
     - Si alguno de los dos grupos está vacío, no hay un intercambio posible.
     - Retorne una tupla nueva; no modifique el individuo recibido.
     """
-    # TODO: Add your code here
-    raise NotImplementedError("Punto 3: implemente swap_mutation")
+    active = []
+    inactive = []
+    i = 0
+    if rng.random() < mutation_probability:
+        for i in range(len(individual)):
+            if individual[i] == 1:
+                active.append(i)
+            elif individual[i] == 0:
+                inactive.append(i)
+        if not active or not inactive:
+            return individual
+        
+        i1 = rng.choice(active)
+        i0 = rng.choice(inactive)
+        mutated = list(individual)
+        mutated[i1] = 0
+        mutated[i0] = 1
+        return tuple(mutated)
+        
+        
 
 
 def genetic_algorithm(
