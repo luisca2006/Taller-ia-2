@@ -21,7 +21,7 @@ class MultiAgentSearchAgent(ABC):
 class MinimaxAgent(MultiAgentSearchAgent):
     """Agente Minimax para el defensor MAX frente al intruso MIN."""
 
-    def minimax(self, state: GameState, agent_index: int, depth_left: int) -> float:
+    def minimax(self, state: GameState, agent_index, depth_left) -> float:
       self.nodes_evaluated += 1
 
       if state.is_win() or state.is_lose():
@@ -82,20 +82,54 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """Agente Minimax que evita explorar ramas mediante poda alfa-beta."""
+    def alphabeta(self, state: GameState, agent_index: int, depth_left: int, alpha: float, beta: float) -> float:
+      
+      self.nodes_evaluated += 1
+
+      if state.is_win() or state.is_lose():
+        return evaluation_function(state)
+
+      if depth_left == 0:
+        return evaluation_function(state)
+
+      acciones = state.get_legal_actions(agent_index)
+      next_agent = (agent_index + 1) % state.get_num_agents()
+
+      if agent_index == 0:  
+        value = float("-inf")
+        for action in acciones:
+          successor = state.generate_successor(agent_index, action)
+          value = max(value, self.alphabeta(successor, next_agent, depth_left - 1, alpha, beta))
+          if value >= beta:
+            break  
+          alpha = max(alpha, value)
+        return value
+
+      else:
+        value = float("inf")
+        for action in acciones:
+          successor = state.generate_successor(agent_index, action)
+          value = min(value, self.alphabeta(successor, next_agent, depth_left - 1, alpha, beta))
+          if value <= alpha:
+            break  
+          beta = min(beta, value)
+        return value
+
 
     def get_action(self, state: GameState) -> str | None:
-        """
-        Retorna la acción de Minimax aplicando poda alfa-beta.
 
-        Debe usar la misma profundidad, orden de acciones y función de
-        evaluación que Minimax.
+      self.nodes_evaluated = 0
 
-        Tips:
-        - Conserve la misma estructura y casos base de MinimaxAgent.
-        - Inicie alpha en -infinito y beta en +infinito, y páselos en las
-          llamadas recursivas.
-        - En MAX actualice alpha y corte si valor >= beta; en MIN actualice beta
-          y corte si valor <= alpha.
-        """
-        # TODO: Add your code here
-        raise NotImplementedError("Punto 5: implemente AlphaBetaAgent.get_action")
+      acciones = state.get_legal_actions(0)
+      best_action = None
+      alpha = float("-inf")
+      beta = float("inf")
+
+      for action in acciones:
+        successor = state.generate_successor(0, action)
+        value = self.alphabeta(successor, 1, self.depth - 1, alpha, beta)
+        if value > alpha:
+          alpha = value
+          best_action = action
+        
+      return best_action
